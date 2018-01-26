@@ -1,0 +1,21 @@
+{
+  "name": "dataengineering",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.16.2",
+    "flickr-tag-crawler": "^0.2.6",
+    "k-means": "^1.0.0",
+    "mecab-async": "^0.1.2",
+    "node-kmeans": "^1.1.0",
+    "socket.io": "^2.0.4",
+    "twitter": "^1.7.1"
+  }
+}

@@ -1,0 +1,155 @@
+<!DOCTYPE html><head>
+<meta charset="UTF-8">
+<title>Twitter Trend Analysis</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+<link rel="stylesheet" href="/css/index.css">
+<script defer src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
+</head>
+<body>
+<h1 class="title">Twitter Trend Analysis</h1>
+<div class="columns"id="trends">
+  <div class="box"><h2 class="subtitle">TimeLine</h2><div class="column" id="scroll"><ul id="TL"></ul></div></div>
+  <div class="box"><h2 class="subtitle">MyTrends</h2><div class="column" id="scroll"><ul id="my_trends"></ul></div>></div>
+  <div class="box"><h2 class="subtitle">GeneralTrends</h2><div class="column" id="scroll"><ul id="grobal_trends"></ul></div></div>
+</div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+$(function() {
+  var socket = io.connect();
+  var xhr = new XMLHttpRequest();
+    xhr.open("GET","/api/statuses/home_timeline");
+    xhr.addEventListener("load", function(e){
+        var list = JSON.parse(xhr.responseText);
+        console.log(list);
+    });
+  xhr.send();
+  getGrobalTrend(); getMyTrend();
+  socket.on('msg', function(data) {
+    console.log(data);
+    $('ul#TL').prepend('<li id="tweet">'+tweet_data(data)+'</li>');
+    getMyTrend();
+  });
+});
+</script>
+<script>
+  /*function tweet_data(tweet){
+    var tweet_dom;
+    if(typeof tweet.retweeted_status !== "undefined"){
+      var text = tweet_data(tweet.retweeted_status);
+      var profile = '<div id="retweet_profile"><a href="https://twitter.com/'+tweet.user.screen_name+'" target="_blank">@'+tweet.user.screen_name+'<img src="'+tweet.user.profile_image_url_https+'"></a></div>';
+      tweet_dom = text+profile;
+    }else{
+      var profile = '<div id="profile"><a href="https://twitter.com/'+tweet.user.screen_name+'" target="_blank"><img src="'+tweet.user.profile_image_url_https+'">'+tweet.user.name+' | @'+tweet.user.screen_name+'</a></div>';
+      text = tweet.text;
+      var inline = "";
+      tweet.entities.urls.forEach(url => {
+        text = text.replace(url.url,'<a href="'+url.url+'" target="_blank">'+url.url+'</a>');
+      });
+      tweet.entities.hashtags.forEach(tag => {
+        text = text.replace("#"+tag.text,'<a href="http://twitter.com/search?q='+encodeURIComponent("#"+tag.text)+'" target="_blank">#'+tag.text+'</a>');
+      });
+      if("media" in tweet.entities){
+        tweet.entities.media.forEach(media =>{
+          text = text.replace(media.url, '<a href="'+media.url+'" target="_blank">'+media.url+'</a>');
+          inline += '<a href="'+media.media_url_https+'" target="_blank"><img src="'+media.media_url_https+'" width="'+media.sizes.small.w/2+'" height="'+media.sizes.small.h/2+'" /></a>'
+        });
+      }
+      if("extended_entities" in tweet){
+        if("media" in tweet.extended_entities){
+          inline = "";
+          tweet.extended_entities.media.forEach(media => {
+            inline += '<a href="'+media.media_url_https+'" target="_blank"><img src="'+media.media_url_https+'" width="'+media.sizes.small.w/2+'" height="'+media.sizes.small.h/2+'" /></a>'
+            console.log(inline)
+          });
+        }
+      }
+      var text = '<div id="text"><p>'+text+'</p>'+tweet.created_at+'</div>'
+      tweet_dom = profile+text+inline;
+    }
+    return tweet_dom;
+  }*/
+  function tweet_data(tweet){
+    var tweet_dom;
+    if(typeof tweet.retweeted_status !== "undefined"){
+      var text = tweet_data(tweet.retweeted_status);
+      var prof_name = tweet.user.name;
+      var prof_screen_name = '@'+tweet.user.screen_name;
+      var prof_image = '<img src="'+tweet.user.profile_image_url_https+'">';
+      var tweet_card_content = '<div class="card-content"><div class="media"><div class="media-left"><figure class="image is-48x48">'+prof_image+'</figure></div><div class="media-content"><p class="title is-6">'+prof_name+'</p><p class="subtitle is-8r">'+prof_screen_name+'</p></div></div>';
+      tweet_dom = '<div class="card">'+tweet_card_content+text+'</div>';
+    }else{
+      var profile = '<div id="profile"><a href="https://twitter.com/'+tweet.user.screen_name+'" target="_blank"><img src="'+tweet.user.profile_image_url_https+'">'+tweet.user.name+' | @'+tweet.user.screen_name+'</a></div>';
+      var prof_name = tweet.user.name;
+      var prof_screen_name = '@'+tweet.user.screen_name;
+      var prof_image = '<img src="'+tweet.user.profile_image_url_https+'">';
+      text = tweet.text;
+      var inline = "";
+      var img = "";
+      tweet.entities.urls.forEach(url => {
+        text = text.replace(url.url,'<a href="'+url.url+'" target="_blank">'+url.url+'</a>');
+      });
+      tweet.entities.hashtags.forEach(tag => {
+        text = text.replace("#"+tag.text,'<a href="http://twitter.com/search?q='+encodeURIComponent("#"+tag.text)+'" target="_blank">#'+tag.text+'</a>');
+      });
+      if("media" in tweet.entities){
+        tweet.entities.media.forEach(media =>{
+          text = text.replace(media.url, '<a href="'+media.url+'" target="_blank">'+media.url+'</a>');
+          img = '<div class="card-image"><figure class="image is-4by3">'+'<a href="'+media.media_url_https+'" target="_blank"><img src="'+media.media_url_https+'" /></a>'+'</figure></div>';
+        });
+      }
+      if("extended_entities" in tweet){
+        if("media" in tweet.extended_entities){
+          inline = "";
+          tweet.extended_entities.media.forEach(media => {
+            inline += '<a href="'+media.media_url_https+'" target="_blank"><img src="'+media.media_url_https+'" width="'+media.sizes.small.w/2+'" height="'+media.sizes.small.h/2+'" /></a>'
+          });
+        }
+      }
+      //var text = '<div class="card" id="text"><p>'+text+'</p>'+tweet.created_at+'</div>'
+      tweet_dom = profile+text+inline;
+      var tweet_card_image = img;
+      var tweet_card_content = '<div class="card-content"><div class="media"><div class="media-left"><figure class="image is-48x48">'+prof_image+'</figure></div><div class="media-content"><p class="title is-6">'+prof_name+'</p><p class="subtitle is-8r">'+prof_screen_name+'</p></div></div>';
+      var tweet_content = '<div class="content">'+text+'<br><time>'+tweet.created_at+'</time></div>'
+      tweet_dom = '<div class="card">'+tweet_card_content+tweet_content+tweet_card_image+'</div>';
+    }
+    return tweet_dom;
+  }
+</script>  
+<script>
+  function getGrobalTrend() {
+    $.ajax({
+      url: '/api/trends/grobal',
+      type: 'get',
+      dataType: 'json',
+    }).done(function (response){
+      console.log(response);
+      $('#grobal_trends').empty();
+      response[0].trends.forEach(trend => {
+        $('#grobal_trends').append('<li><a href="'+trend.url+'" target="_blank"><span class="tag is-info is-medium">'+trend.name+'</span></li>');
+      });
+    }).fail(function(){
+      $('#grobal_trends').empty();
+      $('#grobal_trends').append('<p>失敗</p>');
+    })
+  };
+</script>
+<script>
+  function getMyTrend() {
+    $.ajax({
+      url: '/api/trends/my',
+      type: 'get',
+      dataType: 'json',
+    }).done(function (response){
+      console.log(response);
+      $('#my_trends').empty();
+      response.forEach(trend => {
+        $('#my_trends').append('<li><a href="'+trend.url+'" target="_blank"><span class="tag is-info is-medium">'+trend.name+'</span></li>');
+      });
+    }).fail(function(){
+      $('#my_trends').empty();
+      $('#my_trends').append('<p>失敗</p>');
+    })
+  };
+</script>
