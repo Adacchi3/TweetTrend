@@ -4,12 +4,20 @@ var http = require('http').Server(app);
 var PORT = process.env.PORT || 10080;
 var MeCab = new require('mecab-async');
 var mecab = new MeCab();
-var jaccard = require('./jaccard');
+var jaccard = require('./jaccard'); 
+var dice = require('./dice'); 
+var simpson = require('./simpson');
 var T = []; var k = 50; var n = 0; var c = {};
 var gT = [];
-var score = 0;
+
+var jac_idx = 0;
+var dic_idx = 0;
+var sim_idx = 0;
 
 var client = require('./twitter');
+var fs = require('fs');
+var filename = "log"+Date.now()+".tsv";
+fs.appendFileSync('./logs/'+filename, "time\t jaccard\t dice\t simpson\n");
 
 MeCab.command = "mecab -d /usr/local/mecab/lib/mecab/dic/mecab-ipadic-neologd";
 http.listen(PORT, () => {
@@ -81,7 +89,8 @@ app.get("/api/statuses/home_timeline", function(req, res, next){
 app.get("/api/trends/grobal", function(req, res, next){
     client.get("trends/place.json", {"id": 23424856}, function(error, trends, response){
         if(!error){
-            console.log(trends);
+            //console.log(trends);
+            gT = [];
             res.json(trends);
             trends[0].trends.forEach( trend =>{
                 MeCab.parseFormat(trend.name, function(err, morphs){
@@ -182,6 +191,9 @@ function updateFrequency(word){
             }
         });
     }
-    score = jaccard(T,gT);
-    console.log("score:"+score);
+    jac_idx = jaccard(T,gT);
+    dic_idx = dice(T,gT);
+    sim_idx = simpson(T,gT);
+    console.log(new Date()+", "+jac_idx+", "+dic_idx+", "+sim_idx);
+    fs.appendFileSync('./logs/'+filename, new Date()+"\t "+jac_idx+"\t "+dic_idx+"\t "+sim_idx+"\t "+T+"\t "+gT+"\n");
 }

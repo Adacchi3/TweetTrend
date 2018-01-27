@@ -13,4 +13,14 @@ div#scroll{
 
 div.box{
     height: 600px;
+    margin: 1px;
+}
+
+p#mozaiku{
+    color: transparent;
+    text-shadow: 0 0 8px rgba(0,0,0,0.5);
+}
+
+img#mozaiku{
+    filter: blur(6px);
 }

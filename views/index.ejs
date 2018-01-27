@@ -6,11 +6,10 @@
 <script defer src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
 </head>
 <body>
-<h1 class="title">Twitter Trend Analysis</h1>
-<div class="columns"id="trends">
-  <div class="box"><h2 class="subtitle">TimeLine</h2><div class="column" id="scroll"><ul id="TL"></ul></div></div>
-  <div class="box"><h2 class="subtitle">MyTrends</h2><div class="column" id="scroll"><ul id="my_trends"></ul></div>></div>
-  <div class="box"><h2 class="subtitle">GeneralTrends</h2><div class="column" id="scroll"><ul id="grobal_trends"></ul></div></div>
+<div class="columns">
+  <div class="box"><h1 class="title">TimeLine</h2><div class="column" id="scroll"><ul id="TL"></ul></div></div>
+  <div class="box"><h1 class="title">MyTrends</h2><div class="column" id="scroll"><ul id="my_trends"></ul></div></div>
+  <div class="box"><h1 class="title">GeneralTrends</h2><div class="column" id="scroll"><ul id="grobal_trends"></ul></div></div>
 </div>
 </body>
 <script src="/socket.io/socket.io.js"></script>
@@ -26,11 +25,19 @@ $(function() {
     });
   xhr.send();
   getGrobalTrend(); getMyTrend();
+  var old_time = Date.now(); 
+  var new_time;
   socket.on('msg', function(data) {
     console.log(data);
     $('ul#TL').prepend('<li id="tweet">'+tweet_data(data)+'</li>');
     getMyTrend();
+    new_time = Date.now();
+    if(new_time-old_time>5*60*1000){
+      getGrobalTrend();
+      old_time = new_time;
+    }
   });
+
 });
 </script>
 <script>
@@ -76,14 +83,14 @@ $(function() {
       var text = tweet_data(tweet.retweeted_status);
       var prof_name = tweet.user.name;
       var prof_screen_name = '@'+tweet.user.screen_name;
-      var prof_image = '<img src="'+tweet.user.profile_image_url_https+'">';
-      var tweet_card_content = '<div class="card-content"><div class="media"><div class="media-left"><figure class="image is-48x48">'+prof_image+'</figure></div><div class="media-content"><p class="title is-6">'+prof_name+'</p><p class="subtitle is-8r">'+prof_screen_name+'</p></div></div>';
+      var prof_image = '<img id="mozaiku" src="'+tweet.user.profile_image_url_https+'">';
+      var tweet_card_content = '<div class="card-content"><div class="media"><div class="media-left"><figure class="image is-48x48">'+prof_image+'</figure></div><div class="media-content"><p class="title is-6" id="mozaiku">'+prof_name+'</p><p class="subtitle is-8r" id="mozaiku">'+prof_screen_name+'</p></div></div>';
       tweet_dom = '<div class="card">'+tweet_card_content+text+'</div>';
     }else{
       var profile = '<div id="profile"><a href="https://twitter.com/'+tweet.user.screen_name+'" target="_blank"><img src="'+tweet.user.profile_image_url_https+'">'+tweet.user.name+' | @'+tweet.user.screen_name+'</a></div>';
       var prof_name = tweet.user.name;
       var prof_screen_name = '@'+tweet.user.screen_name;
-      var prof_image = '<img src="'+tweet.user.profile_image_url_https+'">';
+      var prof_image = '<img id="mozaiku" src="'+tweet.user.profile_image_url_https+'">';
       text = tweet.text;
       var inline = "";
       var img = "";
@@ -96,7 +103,7 @@ $(function() {
       if("media" in tweet.entities){
         tweet.entities.media.forEach(media =>{
           text = text.replace(media.url, '<a href="'+media.url+'" target="_blank">'+media.url+'</a>');
-          img = '<div class="card-image"><figure class="image is-4by3">'+'<a href="'+media.media_url_https+'" target="_blank"><img src="'+media.media_url_https+'" /></a>'+'</figure></div>';
+          img = '<div class="card-image"><figure class="image is-4by3">'+'<a href="'+media.media_url_https+'" target="_blank"><img id="mozaiku" src="'+media.media_url_https+'" /></a>'+'</figure></div>';
         });
       }
       if("extended_entities" in tweet){
@@ -110,7 +117,7 @@ $(function() {
       //var text = '<div class="card" id="text"><p>'+text+'</p>'+tweet.created_at+'</div>'
       tweet_dom = profile+text+inline;
       var tweet_card_image = img;
-      var tweet_card_content = '<div class="card-content"><div class="media"><div class="media-left"><figure class="image is-48x48">'+prof_image+'</figure></div><div class="media-content"><p class="title is-6">'+prof_name+'</p><p class="subtitle is-8r">'+prof_screen_name+'</p></div></div>';
+      var tweet_card_content = '<div class="card-content"><div class="media"><div class="media-left"><figure class="image is-48x48">'+prof_image+'</figure></div><div class="media-content"><p class="title is-6" id="mozaiku">'+prof_name+'</p><p class="subtitle is-8r" id="mozaiku">'+prof_screen_name+'</p></div></div>';
       var tweet_content = '<div class="content">'+text+'<br><time>'+tweet.created_at+'</time></div>'
       tweet_dom = '<div class="card">'+tweet_card_content+tweet_content+tweet_card_image+'</div>';
     }
